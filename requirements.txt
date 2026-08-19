@@ -1,0 +1,11 @@
+fastapi
+gunicorn
+jinja2
+logging
+numpy
+pillow
+pymemcache
+python-multipart
+requests
+uvicorn
+wheel

@@ -1,0 +1,9 @@
+/var/log/mikiri-waf/captcha/*.log
+{
+  size 20M
+  create
+  copytruncate
+  rotate 5
+  missingok
+  notifempty
+}

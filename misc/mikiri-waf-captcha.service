@@ -1,0 +1,13 @@
+[Unit]
+Description=Mikiri WAF CAPTCHA
+After=multi-user.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/mikiri-waf-captcha
+ExecStart=/var/www/mikiri-waf-captcha/venv/bin/gunicorn -c init.py api:app -k uvicorn.workers.UvicornWorker
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target
