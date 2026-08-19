@@ -13,8 +13,8 @@ from fastapi.responses import Response, HTMLResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 
 from core import captcha_img_gen
-from core import hdr_cpass_false
-from core import hdr_cpass_true
+from core import hdr_cpass_progress
+from core import hdr_cpass_complete
 from core import mclient
 from core import memc_prefix
 from core import request_preprocessing
@@ -38,22 +38,23 @@ async def main(request: Request):
 
         # CORS issue fix
         hdrs = {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Headers': 'x-waf-antibot-id, x-waf-antibot-validation'
+            **{
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'x-waf-antibot-id, x-waf-antibot-validation'
+            },
+            **hdr_cpass_progress
         }
 
         # response
         if r:
 
             # OK: request with query
-            if r[1]:
+            if r:
                 return templates.TemplateResponse(
                     request=request,
-                    headers={**hdrs, **hdr_cpass_false},
+                    headers=hdrs,
                     name='index.html',
-                    context={
-                        'sid': r[0]
-                    }
+                    context={"sid": r}
                 )
 
             # FAIL: no query in request
@@ -91,16 +92,16 @@ async def main(request: Request, sid: str = Form(...), answer: str = Form(...)):
             # response
             if r:
                 return templates.TemplateResponse(
-                    'index.html',
-                    {'request': request, 'sid': r[0], 'status': 0},
-                    headers=hdr_cpass_false
+                    name='index.html',
+                    headers=hdr_cpass_progress,
+                    request={'request': request, 'sid': r, 'status': 0}
                 )
             else:
                 return Response(status_code=400)
 
         # success validation
         if str(answer) == str(json.loads(memout).get('answer')):
-            Response(headers=hdr_cpass_true, status_code=200)
+            return Response(content=None, headers=hdr_cpass_complete, status_code=200)
 
         # fail validation
         else:
@@ -111,9 +112,9 @@ async def main(request: Request, sid: str = Form(...), answer: str = Form(...)):
             # response
             if r:
                 return templates.TemplateResponse(
-                    'index.html',
-                    {'request': request, 'sid': r[0], 'status': 1},
-                    headers=hdr_cpass_false
+                    name='index.html',
+                    headers=hdr_cpass_progress,
+                    request={'request': request, 'sid': r, 'status': 1}
                 )
             else:
                 return Response(status_code=400)

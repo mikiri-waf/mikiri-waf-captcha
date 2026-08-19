@@ -20,8 +20,8 @@ from logger import log
 ##
 
 memc_prefix = 'mikiri-waf-captcha_'
-hdr_cpass_true = {'x-waf-captcha-response': {'challenge-pass': True}}
-hdr_cpass_false = {'x-waf-captcha-response': {'challenge-pass': False}}
+hdr_cpass_complete = {'x-waf-captcha-challenge': 'complete'}
+hdr_cpass_progress = {'x-waf-captcha-challenge': 'progress'}
 
 ##
 

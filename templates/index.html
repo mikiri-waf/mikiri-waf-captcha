@@ -21,9 +21,9 @@
                 transform: translateX(-50%) translateY(-50%);
             }
 
-            .error-fon {
+            .error-font {
                 font-weight: bold;
-                color: #d0e3f7;
+                color: #949393;
             }
 
             .error-text-top {
@@ -55,17 +55,16 @@
 
     <body>
         <div class="error">
-            <div class="error-fon">
+            <div class="error-font">
                 <font style="font-size:240px;">403</font>
                 <br>
                 <font style="font-size:40px;">Access is temporarily blocked</font>
+                <br>
+                <font style="font-size:24px;">To continue using the site, please complete the CAPTCHA</font>
             </div>
             <br>
             <div class="error-text-wrap">
                 <div class="error-text-top">
-
-                    <hr>
-                    <p>To continue using the site, please complete the CAPTCHA</p>
 
                     <hr>
                     <p style="margin-top: -15px;">
@@ -73,10 +72,10 @@
                         <p><img src="/captcha?sid={{ sid }}"></p>
                         
                         <p>
-                            <form method="post" action="/verify>
+                            <form id="verify" method="post" action="/verify">
                                 <input type="number" name="answer" placeholder="Enter the result" required>
                                 <input type="hidden" name="sid" value="{{ sid }}">
-                                <button type="submit">OK</button>
+                                <button type="submit">Send</button>
                             </form>
                         </p>
 
