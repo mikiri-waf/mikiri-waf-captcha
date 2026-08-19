@@ -25,14 +25,14 @@ cp /var/www/mikiri-waf-captcha/misc/captcha.service /lib/systemd/system/
 proxy = 'http://proxy.example.com:3128'
 ```
 
-4. Run the CAPTCHA:
+4. Run the application:
 
 ```bash
 systemctl enable mikiri-waf-captcha
 systemctl start mikiri-waf-captcha
 ```
 
-5. Check the web application's status and log for errors:
+5. Check status and log for errors:
 
 ```bash
 systemctl status mikiri-waf-captcha
