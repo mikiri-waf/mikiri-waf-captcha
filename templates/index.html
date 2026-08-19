@@ -1,95 +1,476 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ru" lang="ru">
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-        <meta http-equiv="Cache-Control" content="no-cache">
-        <script type="text/javascript">
-            function captcha_subm() {
-                document.getElementById("captcha").submit()
-            }
-        </script>
-        <style type="text/css">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta http-equiv="Cache-Control" content="no-cache"/>
+
+    <script type="text/javascript">
+        function captcha_subm() {
+            document.getElementById("verify").submit();
+        }
+    </script>
+
+    <title>Security Verification — Mikiri WAF</title>
+
+    <style type="text/css">
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100%;
+        }
+
+        body {
+            background: #080d17;
+            color: #ffffff;
+
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Roboto,
+                Helvetica,
+                Arial,
+                sans-serif;
+
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+        }
+
+        /* Subtle Mikiri blue glow */
+
+        body:before {
+            content: "";
+            position: fixed;
+
+            top: -300px;
+            left: 50%;
+
+            width: 700px;
+            height: 700px;
+
+            transform: translateX(-50%);
+
+            background: radial-gradient(
+                circle,
+                rgba(37, 99, 235, 0.16) 0%,
+                rgba(37, 99, 235, 0.06) 35%,
+                rgba(37, 99, 235, 0) 70%
+            );
+
+            pointer-events: none;
+        }
+
+        /* Main content */
+
+        .error {
+            position: absolute;
+
+            top: 50%;
+            left: 50%;
+
+            width: 100%;
+            max-width: 560px;
+
+            padding: 40px 24px;
+
+            transform: translate(-50%, -50%);
+
+            text-align: center;
+        }
+
+        /* Brand */
+
+        .brand {
+            margin-bottom: 42px;
+
+            color: #ffffff;
+
+            font-size: 22px;
+            line-height: 1;
+            font-weight: 700;
+
+            letter-spacing: -0.5px;
+        }
+
+        .brand span {
+            color: #3b82f6;
+        }
+
+        /* Security title */
+
+        .security-title {
+            margin: 0;
+
+            color: #ffffff;
+
+            font-size: 42px;
+            line-height: 1.15;
+            font-weight: 700;
+
+            letter-spacing: -1.5px;
+        }
+
+        .security-description {
+            max-width: 440px;
+
+            margin: 16px auto 0;
+
+            color: #94a3b8;
+
+            font-size: 16px;
+            line-height: 1.6;
+            font-weight: 400;
+        }
+
+        /* Divider */
+
+        .divider {
+            width: 100%;
+            height: 1px;
+
+            margin: 34px 0;
+
+            border: 0;
+
+            background: #1e293b;
+        }
+
+        /* CAPTCHA card */
+
+        .captcha-container {
+            width: 100%;
+
+            padding: 28px;
+
+            background: rgba(13, 20, 34, 0.92);
+
+            border: 1px solid #1e293b;
+            border-radius: 14px;
+
+            box-shadow:
+                0 20px 50px rgba(0, 0, 0, 0.25);
+        }
+
+        .captcha-title {
+            margin: 0 0 20px;
+
+            color: #e2e8f0;
+
+            font-size: 14px;
+            line-height: 1.4;
+            font-weight: 600;
+        }
+
+        /* CAPTCHA image */
+
+        .captcha-image {
+            display: block;
+
+            width: 100%;
+            max-width: 300px;
+            height: auto;
+
+            margin: 0 auto 22px;
+
+            padding: 4px;
+
+            background: #ffffff;
+
+            border: 1px solid #334155;
+            border-radius: 8px;
+        }
+
+        /* Form */
+
+        .captcha-form {
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            gap: 10px;
+
+            margin: 0;
+        }
+
+        /* Input */
+
+        input[type="number"] {
+            width: 100%;
+            max-width: 220px;
+            height: 46px;
+
+            padding: 0 14px;
+
+            background: #080d17;
+
+            border: 1px solid #334155;
+            border-radius: 8px;
+
+            outline: none;
+
+            color: #ffffff;
+
+            font-family: inherit;
+            font-size: 15px;
+
+            text-align: center;
+
+            transition:
+                border-color 0.2s ease,
+                box-shadow 0.2s ease;
+        }
+
+        input[type="number"]::placeholder {
+            color: #64748b;
+        }
+
+        input[type="number"]:focus {
+            border-color: #3b82f6;
+
+            box-shadow:
+                0 0 0 3px rgba(59, 130, 246, 0.14);
+        }
+
+        /* Verify button */
+
+        button {
+            height: 46px;
+
+            min-width: 92px;
+
+            padding: 0 20px;
+
+            background: #2563eb;
+
+            border: 0;
+            border-radius: 8px;
+
+            color: #ffffff;
+
+            cursor: pointer;
+
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+
+            transition:
+                background 0.2s ease,
+                box-shadow 0.2s ease,
+                transform 0.2s ease;
+        }
+
+        button:hover {
+            background: #3b82f6;
+
+            box-shadow:
+                0 8px 24px rgba(37, 99, 235, 0.25);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        /* Failed CAPTCHA */
+
+        .status {
+            margin: 18px 0 0;
+
+            color: #f87171;
+
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        /* Refresh */
+
+        .refresh {
+            display: inline-block;
+
+            margin-top: 22px;
+
+            color: #64748b;
+
+            font-size: 13px;
+            line-height: 1.4;
+
+            text-decoration: none;
+
+            transition: color 0.2s ease;
+        }
+
+        .refresh:hover {
+            color: #3b82f6;
+        }
+
+        /* Footer */
+
+        .footer {
+            margin-top: 36px;
+
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .footer a {
+            color: #475569;
+
+            text-decoration: none;
+
+            transition: color 0.2s ease;
+        }
+
+        .footer a:hover {
+            color: #3b82f6;
+        }
+
+        /* Mobile */
+
+        @media (max-width: 600px) {
+
             .error {
-                color: #000;
-                font-family: Arial, sans-serif;
-                text-align: center;
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                -moz-transform: translateX(-50%) translateY(-50%);
-                -webkit-transform: translateX(-50%) translateY(-50%);
-                transform: translateX(-50%) translateY(-50%);
+                position: relative;
+
+                top: auto;
+                left: auto;
+
+                min-height: 100vh;
+
+                padding: 32px 20px;
+
+                transform: none;
+
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
             }
 
-            .error-font {
-                font-weight: bold;
-                color: #949393;
+            .brand {
+                margin-bottom: 34px;
             }
 
-            .error-text-top {
-                color: #434141;
-                text-align: center;
-                font-size: 16px;
+            .security-title {
+                font-size: 32px;
+                letter-spacing: -1px;
             }
 
-            hr {
-                display: block;
-                height: 10px;
-                border: 0;
-                border-top: 1px solid #ccc;
-                margin: 1em 0;
-                padding: 0;
+            .security-description {
+                font-size: 14px;
             }
 
-            .captcha-container { max-width: 300px; margin: 0 auto; }
-            input { height: 35px; width: 150px; text-align: center; font-size: 16px;}
-            button { background-color: #4CAF50; color: white; border: none; cursor: pointer; height: 40px; width: 40px;}
-            button:hover { background-color: #45a049; }
-            .status { color: rgb(245, 0, 0); margin-top: 20px; }
-            img { margin: 10px 0; }
-        </style>
+            .captcha-container {
+                padding: 22px 18px;
+            }
 
-        <title>403 Access denied</title>
+            .captcha-form {
+                flex-direction: column;
+            }
 
-    </head>
+            input[type="number"],
+            button {
+                width: 100%;
+                max-width: none;
+            }
+        }
 
-    <body>
-        <div class="error">
-            <div class="error-font">
-                <font style="font-size:240px;">403</font>
-                <br>
-                <font style="font-size:40px;">Access is temporarily blocked</font>
-                <br>
-                <font style="font-size:24px;">To continue using the site, please complete the CAPTCHA</font>
+    </style>
+</head>
+
+<body>
+
+    <div class="error">
+
+        <div class="brand">
+            Mikiri <span>WAF</span>
+        </div>
+
+        <h1 class="security-title">
+            Security Verification
+        </h1>
+
+        <div class="security-description">
+            Please complete the security check to continue.
+        </div>
+
+        <hr class="divider"/>
+
+        <div class="captcha-container">
+
+            <div class="captcha-title">
+                Verify that you are not a robot
             </div>
-            <br>
-            <div class="error-text-wrap">
-                <div class="error-text-top">
 
-                    <hr>
-                    <p style="margin-top: -15px;">
+            <img
+                class="captcha-image"
+                src="/captcha?sid={{ sid }}"
+                alt="Security verification CAPTCHA"
+            />
 
-                        <p><img src="/captcha?sid={{ sid }}"></p>
-                        
-                        <p>
-                            <form id="verify" method="post" action="/verify">
-                                <input type="number" name="answer" placeholder="Enter the result" required>
-                                <input type="hidden" name="sid" value="{{ sid }}">
-                                <button type="submit">Send</button>
-                            </form>
-                        </p>
+            <form
+                id="verify"
+                class="captcha-form"
+                method="post"
+                action="/verify"
+            >
 
-                        {% if status == 1 %}
-                            <p class="status">CAPTCHA challenge failed, please try again</p>         
-                        {% endif %}
+                <input
+                    type="number"
+                    name="answer"
+                    placeholder="Enter the result"
+                    required="required"
+                    autocomplete="off"
+                    inputmode="numeric"
+                />
 
-                        <p><a href="javascript:location.reload();" style="text-decoration:none">refresh</a></p>
+                <input
+                    type="hidden"
+                    name="sid"
+                    value="{{ sid }}"
+                />
 
-                    </p>
+                <button type="submit">
+                    Verify
+                </button>
 
+            </form>
+
+            {% if status == 1 %}
+                <div class="status">
+                    Verification failed. Please try again.
                 </div>
-            </div>
+            {% endif %}
 
         </div>
-    </body>
+
+        <a
+            class="refresh"
+            href="javascript:location.reload();"
+        >
+            Refresh CAPTCHA
+        </a>
+
+        <div class="footer">
+            <a
+                href="https://mikiri.ai"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                Protected by Mikiri WAF
+            </a>
+        </div>
+
+    </div>
+
+</body>
+
 </html>
