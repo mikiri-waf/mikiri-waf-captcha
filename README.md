@@ -19,7 +19,7 @@ cp /var/www/mikiri-waf-captcha/misc/captcha /etc/logrotate.d/
 cp /var/www/mikiri-waf-captcha/misc/captcha.service /lib/systemd/system/
 ```
 
-3. In the configuration file `/var/www/mikiri-waf-captcha/settings.py`, set the proxy server address (if used), for example:
+3. Set the proxy server address (if used) in the configuration file `/var/www/mikiri-waf-captcha/settings.py`:
 
 ```bash
 proxy = 'http://proxy.example.com:3128'
