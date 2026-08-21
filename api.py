@@ -29,6 +29,7 @@ templates = Jinja2Templates(directory='templates')
 ##
 
 @app.get('/', response_class=HTMLResponse)
+@app.post('/', response_class=HTMLResponse)
 @app.options('/', response_class=HTMLResponse)
 async def main(request: Request):
     try:
