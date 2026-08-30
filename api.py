@@ -74,7 +74,7 @@ async def main(request: Request):
     try:
         sid = str(request.query_params.get('sid'))
         r = captcha_img_gen(sid)
-        return Response(status_code=400) if r is None else StreamingResponse(r, media_type='image/png', status_code=200)
+        return Response(status_code=400) if not r else StreamingResponse(r, media_type='image/png', headers=hdr_cpass_progress, status_code=200)
     except Exception as e:
         log.error('An error occurred in /captcha: {}'.format(e))
 

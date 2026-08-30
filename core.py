@@ -118,6 +118,4 @@ def request_preprocessing(request):
 
     except Exception as e:
         log.error('An error occurred while processing IP unblocking request: {}'.format(e))
-
-    # default response
-    return None
+        return None
