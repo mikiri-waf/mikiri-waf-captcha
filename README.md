@@ -37,5 +37,5 @@ netstat -nlp | grep 8080
 5. Keep your environment up to date. Run this command to update pip:
 
 ```bash
-/var/www/mikiri-waf-captcha/misc/misc/pip_update.sh
+/var/www/mikiri-waf-captcha/misc/pip_update.sh
 ```
