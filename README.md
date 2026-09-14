@@ -32,3 +32,10 @@ systemctl start mikiri-waf-captcha
 systemctl status mikiri-waf-captcha
 cat /var/log/mikiri-waf/captcha/api.log
 netstat -nlp | grep 8080
+```
+
+5. Keep your environment up to date. Run this command to update pip:
+
+```bash
+/var/www/mikiri-waf-captcha/misc/misc/pip_update.sh
+```
