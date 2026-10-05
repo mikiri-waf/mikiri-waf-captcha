@@ -1,28 +1,14 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ru" lang="ru">
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <meta http-equiv="Cache-Control" content="no-cache"/>
-
-    <script type="text/javascript">
-        function captcha_subm() {
-            document.getElementById("verify").submit();
-        }
-    </script>
-
     <title>Security Verification — Mikiri WAF</title>
+    <style>
+        * { box-sizing: border-box; }
 
-    <style type="text/css">
-
-        * {
-            box-sizing: border-box;
-        }
-
-        html,
-        body {
+        html, body {
             margin: 0;
             padding: 0;
             width: 100%;
@@ -32,445 +18,359 @@
         body {
             background: #080d17;
             color: #ffffff;
-
-            font-family:
-                -apple-system,
-                BlinkMacSystemFont,
-                "Segoe UI",
-                Roboto,
-                Helvetica,
-                Arial,
-                sans-serif;
-
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             -webkit-font-smoothing: antialiased;
             text-rendering: optimizeLegibility;
         }
 
-        /* Subtle Mikiri blue glow */
-
         body:before {
             content: "";
             position: fixed;
-
             top: -300px;
             left: 50%;
-
             width: 700px;
             height: 700px;
-
             transform: translateX(-50%);
-
-            background: radial-gradient(
-                circle,
-                rgba(37, 99, 235, 0.16) 0%,
-                rgba(37, 99, 235, 0.06) 35%,
-                rgba(37, 99, 235, 0) 70%
-            );
-
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.16) 0%, rgba(37, 99, 235, 0.06) 35%, rgba(37, 99, 235, 0) 70%);
             pointer-events: none;
         }
 
-        /* Main content */
-
         .error {
-            position: absolute;
-
-            top: 50%;
-            left: 50%;
-
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
             width: 100%;
             max-width: 560px;
-
+            min-height: 100vh;
+            margin: 0 auto;
             padding: 40px 24px;
-
-            transform: translate(-50%, -50%);
-
             text-align: center;
         }
 
-        /* Brand */
-
         .brand {
             margin-bottom: 42px;
-
             color: #ffffff;
-
             font-size: 22px;
             line-height: 1;
             font-weight: 700;
-
             letter-spacing: -0.5px;
         }
 
-        .brand span {
-            color: #3b82f6;
-        }
-
-        /* Security title */
+        .brand span { color: #3b82f6; }
 
         .security-title {
             margin: 0;
-
             color: #ffffff;
-
             font-size: 42px;
             line-height: 1.15;
             font-weight: 700;
-
             letter-spacing: -1.5px;
         }
 
         .security-description {
             max-width: 440px;
-
             margin: 16px auto 0;
-
             color: #94a3b8;
-
             font-size: 16px;
             line-height: 1.6;
             font-weight: 400;
         }
 
-        /* Divider */
-
         .divider {
             width: 100%;
             height: 1px;
-
             margin: 34px 0;
-
             border: 0;
-
             background: #1e293b;
         }
 
-        /* CAPTCHA card */
-
         .captcha-container {
             width: 100%;
-
-            padding: 28px;
-
+            padding: 22px;
             background: rgba(13, 20, 34, 0.92);
-
             border: 1px solid #1e293b;
-            border-radius: 14px;
-
-            box-shadow:
-                0 20px 50px rgba(0, 0, 0, 0.25);
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
         }
 
         .captcha-title {
+            display: block;
             margin: 0 0 20px;
-
             color: #e2e8f0;
-
-            font-size: 14px;
+            font-size: 15px;
             line-height: 1.4;
             font-weight: 600;
         }
 
-        /* CAPTCHA image */
-
-        .captcha-image {
-            display: block;
-
-            width: 100%;
-            max-width: 300px;
-            height: auto;
-
-            margin: 0 auto 22px;
-
-            padding: 4px;
-
-            background: #ffffff;
-
-            border: 1px solid #334155;
-            border-radius: 8px;
+        /* Decoded off-screen. display:none would skip the load. */
+        .captcha-source {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
         }
 
-        /* Form */
+        .stage {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+            line-height: 0;
+            background: #0b1220;
+            border-radius: 12px;
+        }
+
+        #board {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        #tile {
+            position: absolute;
+            left: 0;
+            top: 0;
+            visibility: hidden;
+            pointer-events: none;
+            filter: drop-shadow(0 8px 18px rgba(2, 6, 23, 0.55));
+        }
 
         .captcha-form {
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            gap: 10px;
-
             margin: 0;
+            /* A centered ancestor makes Chrome jump a range input to the middle. */
+            text-align: left;
         }
 
-        /* Input */
-
-        input[type="number"] {
+        .slider {
+            -webkit-appearance: none;
+            appearance: none;
+            display: block;
             width: 100%;
-            max-width: 220px;
-            height: 46px;
-
-            padding: 0 14px;
-
-            background: #080d17;
-
-            border: 1px solid #334155;
-            border-radius: 8px;
-
-            outline: none;
-
-            color: #ffffff;
-
-            font-family: inherit;
-            font-size: 15px;
-
-            text-align: center;
-
-            transition:
-                border-color 0.2s ease,
-                box-shadow 0.2s ease;
+            height: 36px;
+            margin: 16px 0 0;
+            background: transparent;
+            cursor: pointer;
+            text-align: left;
         }
 
-        input[type="number"]::placeholder {
-            color: #64748b;
+        .slider:focus { outline: none; }
+
+        .slider::-webkit-slider-runnable-track {
+            height: 8px;
+            background: #1e293b;
+            border-radius: 999px;
         }
 
-        input[type="number"]:focus {
-            border-color: #3b82f6;
-
-            box-shadow:
-                0 0 0 3px rgba(59, 130, 246, 0.14);
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 30px;
+            height: 30px;
+            margin-top: -11px;
+            border: 3px solid #eff6ff;
+            border-radius: 50%;
+            background: #3b82f6;
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.45);
         }
 
-        /* Verify button */
+        .slider::-moz-range-track {
+            height: 8px;
+            background: #1e293b;
+            border: 0;
+            border-radius: 999px;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border: 3px solid #eff6ff;
+            border-radius: 50%;
+            background: #3b82f6;
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.45);
+        }
+
+        .slider:focus-visible::-webkit-slider-thumb {
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.35);
+        }
 
         button {
+            width: 100%;
             height: 46px;
-
-            min-width: 92px;
-
+            margin-top: 12px;
             padding: 0 20px;
-
             background: #2563eb;
-
             border: 0;
-            border-radius: 8px;
-
+            border-radius: 10px;
             color: #ffffff;
-
             cursor: pointer;
-
             font-family: inherit;
             font-size: 14px;
             font-weight: 600;
-
-            transition:
-                background 0.2s ease,
-                box-shadow 0.2s ease,
-                transform 0.2s ease;
+            transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
         }
 
         button:hover {
             background: #3b82f6;
-
-            box-shadow:
-                0 8px 24px rgba(37, 99, 235, 0.25);
+            box-shadow: 0 8px 24px rgba(37, 99, 235, 0.25);
         }
 
-        button:active {
-            transform: translateY(1px);
-        }
-
-        /* Failed CAPTCHA */
+        button:active { transform: translateY(1px); }
 
         .status {
-            margin: 18px 0 0;
-
+            margin: 16px 0 0;
             color: #f87171;
-
             font-size: 13px;
             line-height: 1.5;
         }
 
-        /* Refresh */
-
         .refresh {
             display: inline-block;
-
             margin-top: 22px;
-
             color: #64748b;
-
             font-size: 13px;
             line-height: 1.4;
-
             text-decoration: none;
-
             transition: color 0.2s ease;
         }
 
-        .refresh:hover {
-            color: #3b82f6;
-        }
-
-        /* Footer */
+        .refresh:hover { color: #3b82f6; }
 
         .footer {
             margin-top: 36px;
-
             font-size: 12px;
             line-height: 1.4;
         }
 
         .footer a {
             color: #475569;
-
             text-decoration: none;
-
             transition: color 0.2s ease;
         }
 
-        .footer a:hover {
-            color: #3b82f6;
-        }
-
-        /* Mobile */
+        .footer a:hover { color: #3b82f6; }
 
         @media (max-width: 600px) {
+            .error { padding: 32px 20px; }
 
-            .error {
-                position: relative;
-
-                top: auto;
-                left: auto;
-
-                min-height: 100vh;
-
-                padding: 32px 20px;
-
-                transform: none;
-
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-            }
-
-            .brand {
-                margin-bottom: 34px;
-            }
+            .brand { margin-bottom: 34px; }
 
             .security-title {
                 font-size: 32px;
                 letter-spacing: -1px;
             }
 
-            .security-description {
-                font-size: 14px;
-            }
+            .security-description { font-size: 14px; }
 
-            .captcha-container {
-                padding: 22px 18px;
-            }
-
-            .captcha-form {
-                flex-direction: column;
-            }
-
-            input[type="number"],
-            button {
-                width: 100%;
-                max-width: none;
-            }
+            .captcha-container { padding: 18px 14px; }
         }
-
     </style>
 </head>
-
 <body>
-
     <div class="error">
+        <div class="brand">Mikiri <span>WAF</span></div>
 
-        <div class="brand">
-            Mikiri <span>WAF</span>
-        </div>
-
-        <h1 class="security-title">
-            Security Verification
-        </h1>
-
-        <div class="security-description">
-            Please complete the security check to continue.
-        </div>
+        <h1 class="security-title">Security Verification</h1>
+        <div class="security-description">Please complete the security check to continue.</div>
 
         <hr class="divider"/>
 
         <div class="captcha-container">
+            <label class="captcha-title" for="slider">Slide the tile into the gap</label>
 
-            <div class="captcha-title">
-                Verify that you are not a robot
-            </div>
+            <img id="captcha-src" class="captcha-source" src="/captcha?sid={{ sid }}" alt=""/>
 
-            <img
-                class="captcha-image"
-                src="/captcha?sid={{ sid }}"
-                alt="Security verification CAPTCHA"
-            />
+            <form id="verify" class="captcha-form" method="post" action="/verify" autocomplete="off">
+                <div class="stage" id="stage">
+                    <canvas id="board" width="480" height="220"></canvas>
+                    <canvas id="tile" width="72" height="72"></canvas>
+                </div>
 
-            <form
-                id="verify"
-                class="captcha-form"
-                method="post"
-                action="/verify"
-            >
-
-                <input
-                    type="number"
-                    name="answer"
-                    placeholder="Enter the result"
-                    required="required"
-                    autocomplete="off"
-                    inputmode="numeric"
-                />
-
-                <input
-                    type="hidden"
-                    name="sid"
-                    value="{{ sid }}"
-                />
-
-                <button type="submit">
-                    Verify
-                </button>
-
+                <input id="slider" class="slider" type="range" name="answer" min="0" max="408" value="0" aria-valuemin="0" aria-valuemax="408"/>
+                <input type="hidden" name="sid" value="{{ sid }}"/>
+                <button type="submit">Continue</button>
             </form>
 
-            {% if status == 1 %}
-                <div class="status">
-                    Verification failed. Please try again.
-                </div>
-            {% endif %}
+            <noscript>
+                <p class="status">Enable JavaScript to move the tile.</p>
+            </noscript>
 
+            {% if status == 1 %}
+                <div class="status">Verification failed. Please try again.</div>
+            {% endif %}
         </div>
 
-        <a
-            class="refresh"
-            href="javascript:location.reload();"
-        >
-            Refresh CAPTCHA
-        </a>
+        <a class="refresh" href="javascript:location.reload();">New puzzle</a>
 
         <div class="footer">
-            <a
-                href="https://mikiri.ai"
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-                Protected by Mikiri WAF
-            </a>
+            <a href="https://mikiri.ai" target="_blank" rel="noopener noreferrer">Protected by Mikiri WAF</a>
         </div>
-
     </div>
 
-</body>
+    <script>
+        (function () {
+            // Same tile size as PIECE in core.py. The sprite is the board
+            // with the loose tile in the row directly under it.
+            var PIECE = 72;
+            var img = document.getElementById('captcha-src');
+            var board = document.getElementById('board');
+            var tile = document.getElementById('tile');
+            var stage = document.getElementById('stage');
+            var range = document.getElementById('slider');
+            var form = document.getElementById('verify');
+            var sent = false;
 
+            function layout() {
+                if (!img.naturalWidth) {
+                    return;
+                }
+                var boardW = img.naturalWidth;
+                var boardH = img.naturalHeight - PIECE;
+                var scale = stage.clientWidth / boardW;
+
+                board.width = boardW;
+                board.height = boardH;
+                board.getContext('2d').drawImage(img, 0, 0, boardW, boardH, 0, 0, boardW, boardH);
+
+                tile.width = PIECE;
+                tile.height = PIECE;
+                tile.getContext('2d').clearRect(0, 0, PIECE, PIECE);
+                tile.getContext('2d').drawImage(img, 0, boardH, PIECE, PIECE, 0, 0, PIECE, PIECE);
+                tile.style.width = Math.round(PIECE * scale) + 'px';
+                tile.style.height = Math.round(PIECE * scale) + 'px';
+                tile.style.top = Math.round((boardH - PIECE) / 2 * scale) + 'px';
+                tile.style.visibility = 'visible';
+
+                range.max = String(boardW - PIECE);
+                range.setAttribute('aria-valuemax', range.max);
+                if (!range.dataset.ready) {
+                    range.value = '0';
+                    range.dataset.ready = '1';
+                }
+                place();
+            }
+
+            function place() {
+                if (!img.naturalWidth) {
+                    return;
+                }
+                var scale = stage.clientWidth / img.naturalWidth;
+                tile.style.left = Math.round(Number(range.value) * scale) + 'px';
+                range.setAttribute('aria-valuenow', range.value);
+            }
+
+            img.addEventListener('load', layout);
+            window.addEventListener('resize', layout);
+            range.addEventListener('input', place);
+            form.addEventListener('submit', function (event) {
+                if (sent) {
+                    event.preventDefault();
+                    return;
+                }
+                sent = true;
+            });
+            if (img.complete) {
+                layout();
+            }
+        })();
+    </script>
+</body>
 </html>

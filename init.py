@@ -21,3 +21,9 @@ logconfig = '/var/www/mikiri-waf-captcha/logging.conf'
 
 # Logging
 log.info('START')
+
+
+def post_fork(server, worker):
+    # The master may have imported the pool. A child must open its own sockets.
+    import core
+    core.reopen_memcache()

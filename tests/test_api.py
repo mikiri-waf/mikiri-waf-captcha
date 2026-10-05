@@ -201,6 +201,7 @@ def test_picture():
     check(h.get(CHALLENGE) == 'progress', 'GET /captcha progress header')
     check(h.get('content-type') == 'image/png', 'GET /captcha content type')
     check(b[:4] == b'\x89PNG', 'GET /captcha returns a PNG')
+    check(len(b) > 500, 'GET /captcha returns a real image')
 
     st, h, b = call('GET', '/captcha', query=b'sid=nosuchsession0000000')
     check(st == 400, 'GET /captcha unknown sid -> 400')
@@ -225,6 +226,13 @@ def test_verify_success():
     check(h.get(CHALLENGE) == 'complete', 'correct answer -> complete')
     check(b == b'', 'correct answer -> empty body')
 
+    # the slider does not have to land on the exact pixel
+    sid = page_sid(call('GET', '/')[2])
+    near = str(int(answer_for(sid)) + 4)
+    st, h, b = call('POST', '/verify', body=form(sid=sid, answer=near),
+                    content_type=b'application/x-www-form-urlencoded')
+    check(h.get(CHALLENGE) == 'complete', 'a placement a few pixels off is accepted')
+
     # a solved session must not be usable a second time
     st, h, b = call('POST', '/verify', body=form(sid=sid, answer=good),
                     content_type=b'application/x-www-form-urlencoded')
@@ -235,7 +243,7 @@ def test_verify_failure():
     """After a wrong answer the page has to stay usable."""
 
     sid = page_sid(call('GET', '/')[2])
-    wrong = str(int(answer_for(sid)) + 1)
+    wrong = str(int(answer_for(sid)) + 40)
 
     st, h, b = call('POST', '/verify', body=form(sid=sid, answer=wrong),
                     content_type=b'application/x-www-form-urlencoded')
